@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A configurable statusbar footer for the pi-coding-agent TUI.",
   "keywords": [
+    "pi-package",
     "pi",
     "extension",
     "statusbar",
@@ -14,6 +15,9 @@
   },
   "license": "MIT",
   "author": "Ben Kreeger",
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
