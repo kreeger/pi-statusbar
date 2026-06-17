@@ -1,6 +1,6 @@
 import type { StatusbarSection } from "../types.js";
 
-const ICON_GIT_BRANCH = "\ue0a0"; // nf-oct-git_branch
+const ICON_GIT_BRANCH = "\ue726"; // 
 const ICON_ARROW_UP = "\u2191";   // ↑
 const ICON_ARROW_DOWN = "\u2193"; // ↓
 
