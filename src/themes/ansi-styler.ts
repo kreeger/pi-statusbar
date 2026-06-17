@@ -64,7 +64,7 @@ export class AnsiStyler implements Styler {
     }
 
     //  — cap divider (after model/git or at end) — no preceding padding,
-    // trailing space colored in next section's bg for seamless transition
+    // trailing space in next section's bg for seamless transition
     const glyph = nextBg
       ? `${bgSgrToFgSgr(prevBg)}${nextBg}${char}${RESET}`
       : `${bgSgrToFgSgr(prevBg)}${char}${RESET}`;
@@ -79,8 +79,8 @@ export class AnsiStyler implements Styler {
       return bg ? `${bgSgrToFgSgr(bg)}\u{e0b6}${RESET}` : "\u{e0b6}";
     }
 
-    //  — closing cap, no leading padding, trailing space
+    //  — closing cap
     const glyph = `${bgSgrToFgSgr(bg)}\u{e0b4}${RESET}`;
-    return bg ? `${glyph}${bg} ${RESET}` : `${glyph} `;
+    return bg ? `${glyph}${bg}${RESET}` : glyph;
   }
 }

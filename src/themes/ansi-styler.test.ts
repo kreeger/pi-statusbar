@@ -32,10 +32,10 @@ describe("AnsiStyler", () => {
     expect(result).toContain("\x1b[38;2;"); // fg from bg
   });
 
-  it("renderCap creates  with trailing space for end position", () => {
+  it("renderCap creates  for end position", () => {
     const styler = new AnsiStyler(CATPPUCCIN_THEME);
     const result = styler.renderCap("cache", "end");
-    expect(strip(result)).toBe("\u{e0b4} ");
+    expect(strip(result)).toBe("\u{e0b4}");
     expect(result).toContain("\x1b[38;2;");
   });
 

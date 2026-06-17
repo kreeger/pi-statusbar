@@ -14,7 +14,7 @@ class PlainStyler implements Styler {
     return prevId === "model" || prevId === "git" ? "\u{e0b4}" : "\u{e0b0}";
   }
   renderCap(_sectionId: string, position: "start" | "end"): string {
-    return position === "start" ? "\u{e0b6}" : "\u{e0b4} ";
+    return position === "start" ? "\u{e0b6}" : "\u{e0b4}";
   }
   getTheme(): any {
     return { sections: {} };
@@ -62,7 +62,7 @@ describe("renderStatusbarLine", () => {
       registry: reg,
       styler,
     });
-    expect(result).toBe("\u{e0b6}B\u{e0b0}A\u{e0b4} ");
+    expect(result).toBe("\u{e0b6}B\u{e0b0}A\u{e0b4}");
   });
 
   it("skips unknown and empty sections", () => {
@@ -80,7 +80,7 @@ describe("renderStatusbarLine", () => {
       registry: reg,
       styler,
     });
-    expect(result).toBe("\u{e0b6}A\u{e0b0}B\u{e0b4} ");
+    expect(result).toBe("\u{e0b6}A\u{e0b0}B\u{e0b4}");
   });
 
   it("uses  divider after model and git sections", () => {
@@ -99,7 +99,7 @@ describe("renderStatusbarLine", () => {
       registry: reg,
       styler,
     });
-    expect(result).toBe("\u{e0b6}M\u{e0b4}T\u{e0b0}G\u{e0b4}C\u{e0b4} ");
+    expect(result).toBe("\u{e0b6}M\u{e0b4}T\u{e0b0}G\u{e0b4}C\u{e0b4}");
   });
 });
 
