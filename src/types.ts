@@ -3,6 +3,8 @@ export interface StatusbarConfig {
   sections: string[];
   /** Absolute path to a custom theme JSON file */
   themePath?: string;
+  /** Number of blank lines below the statusbar (0-3). Default: 0. */
+  footerSpacing?: number;
 }
 
 export interface StatusbarUsage {

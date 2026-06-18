@@ -124,7 +124,11 @@ export function createStatusbarFooter(
         registry,
         styler,
       });
-      return [truncateStatusbarLine(line, width)];
+      const lines = [truncateStatusbarLine(line, width)];
+      for (let i = 0; i < (config.footerSpacing ?? 1); i++) {
+        lines.push(" ");
+      }
+      return lines;
     },
   };
 }

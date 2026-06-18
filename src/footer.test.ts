@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectUsage, renderStatusbarLine } from "./footer.js";
+import { collectUsage, createStatusbarFooter, renderStatusbarLine } from "./footer.js";
 import { SectionRegistry } from "./registry.js";
 import type { Styler } from "./styler.js";
 import type { SectionAccessors } from "./types.js";
@@ -100,6 +100,111 @@ describe("renderStatusbarLine", () => {
       styler,
     });
     expect(result).toBe("\u{e0b6}M\u{e0b4}T\u{e0b0}G\u{e0b4}C\u{e0b4}");
+  });
+});
+
+describe("createStatusbarFooter", () => {
+  it("returns 1 line when footerSpacing is 0", () => {
+    const styler = new PlainStyler();
+    const reg = new SectionRegistry();
+    reg.registerAll([{ id: "a", render: () => "A" }]);
+
+    const footer = createStatusbarFooter({
+      config: {
+        divider: " | ",
+        sections: ["a"],
+        footerSpacing: 0,
+      },
+      cwd: "/repo",
+      getModel: () => undefined,
+      getThinkingLevel: () => "off",
+      getContextUsage: () => undefined,
+      getBranchEntries: () => [],
+      getGitStatus: () => ({
+        branch: null,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        ahead: 0,
+        behind: 0,
+      }),
+      registry: reg,
+      styler,
+    });
+
+    const lines = footer.render(80);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toBeTruthy();
+  });
+
+  it("returns a visible-width spacer line by default", () => {
+    const styler = new PlainStyler();
+    const reg = new SectionRegistry();
+    reg.registerAll([{ id: "a", render: () => "A" }]);
+
+    const footer = createStatusbarFooter({
+      config: {
+        divider: " | ",
+        sections: ["a"],
+      },
+      cwd: "/repo",
+      getModel: () => undefined,
+      getThinkingLevel: () => "off",
+      getContextUsage: () => undefined,
+      getBranchEntries: () => [],
+      getGitStatus: () => ({
+        branch: null,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        ahead: 0,
+        behind: 0,
+      }),
+      registry: reg,
+      styler,
+    });
+
+    const lines = footer.render(80);
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toBeTruthy();
+    expect(lines[1]).toBe(" ");
+  });
+
+  it("returns 3 lines (statusbar + 2 blanks) when footerSpacing is 2", () => {
+    const styler = new PlainStyler();
+    const reg = new SectionRegistry();
+    reg.registerAll([{ id: "a", render: () => "A" }]);
+
+    const footer = createStatusbarFooter({
+      config: {
+        divider: " | ",
+        sections: ["a"],
+        footerSpacing: 2,
+      },
+      cwd: "/repo",
+      getModel: () => undefined,
+      getThinkingLevel: () => "off",
+      getContextUsage: () => undefined,
+      getBranchEntries: () => [],
+      getGitStatus: () => ({
+        branch: null,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        ahead: 0,
+        behind: 0,
+      }),
+      registry: reg,
+      styler,
+    });
+
+    const lines = footer.render(80);
+    expect(lines).toHaveLength(3);
+    expect(lines[1]).toBe(" ");
+    expect(lines[2]).toBe(" ");
   });
 });
 
