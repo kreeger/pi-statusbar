@@ -70,7 +70,7 @@ describe("gitSection", () => {
   it("renders branch only when clean", () => {
     expect(
       gitSection.render(ctx({ ...createEmptyGitStatus(), branch: "main" })),
-    ).toBe("\ue0a0 main");
+    ).toBe("\ue726 main");
   });
 
   it("renders compact dirty counts", () => {
@@ -86,7 +86,7 @@ describe("gitSection", () => {
           behind: 0,
         }),
       ),
-    ).toBe("\ue0a0 main +2 ~1 ?3");
+    ).toBe("\ue726 main +2 ~1 ?3");
   });
 
   it("renders ahead count", () => {
@@ -102,7 +102,7 @@ describe("gitSection", () => {
           behind: 0,
         }),
       ),
-    ).toBe("\ue0a0 main \u21913");
+    ).toBe("\ue726 main \u21913");
   });
 
   it("renders diverged (both ahead and behind)", () => {
@@ -118,6 +118,6 @@ describe("gitSection", () => {
           behind: 1,
         }),
       ),
-    ).toBe("\ue0a0 main \u21912 \u21931");
+    ).toBe("\ue726 main \u21912 \u21931");
   });
 });

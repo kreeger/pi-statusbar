@@ -3,6 +3,7 @@
 CHANGELOG.md
 CONTRIBUTING.md
 mise.toml
+docs/
 test/
 *.test.ts
 tsconfig.json

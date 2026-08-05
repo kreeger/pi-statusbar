@@ -66,14 +66,11 @@ subprocess.
 
 ## Install
 
-pi-statusbar isn't on npm. Install from the git repository using
-`pi install`:
+pi-statusbar is available on npm. Install it using `pi install`:
 
 ```bash
-pi install git@github.com:kreeger/pi-statusbar.git
+pi install @kreeger/pi-statusbar
 ```
-
-Pass the repository URL directly as a single argument.
 
 If you've cloned the repository locally, you can also install from
 the local path:

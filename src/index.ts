@@ -22,9 +22,10 @@ export default function (pi: ExtensionAPI) {
     registry.registerAll(builtinSections);
 
     // Register git section + start its polling lifecycle
-    gitState = new GitState(pi, ctx.cwd);
+    const sessionGitState = new GitState(pi, ctx.cwd);
+    gitState = sessionGitState;
     registry.register(gitSection);
-    gitState.startPolling();
+    sessionGitState.startPolling();
 
     ctx.ui.setFooter(() =>
       createStatusbarFooter({
@@ -41,14 +42,16 @@ export default function (pi: ExtensionAPI) {
         getThinkingLevel: () => pi.getThinkingLevel(),
         getContextUsage: () => ctx.getContextUsage(),
         getBranchEntries: () => ctx.sessionManager.getBranch(),
-        getGitStatus: () => gitState!.snapshot,
+        getGitStatus: () => sessionGitState.snapshot,
         registry,
         styler,
       }),
     );
   });
 
-  pi.on("session_shutdown", () => {
+  pi.on("session_shutdown", (_event, ctx) => {
+    ctx.ui?.setFooter(undefined);
+
     if (gitState) {
       gitState.stopPolling();
       gitState = undefined;
