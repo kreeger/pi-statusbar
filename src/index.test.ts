@@ -16,10 +16,43 @@ function createMockPi() {
   } as any;
 }
 
+function mockQuotaState() {
+  return {
+    usedPercent: undefined,
+    startPolling: vi.fn(),
+    stopPolling: vi.fn(),
+    isPolling: false,
+  } as any;
+}
+
 describe("pi-statusbar extension", () => {
+  it("does not perform quota requests in lifecycle tests", async () => {
+    const stopPolling = vi.fn();
+    const pi = createMockPi();
+    extension(
+      pi,
+      () =>
+        ({
+          usedPercent: undefined,
+          startPolling: vi.fn(),
+          stopPolling,
+          isPolling: false,
+        }) as any,
+    );
+    const ctx = {
+      hasUI: true,
+      cwd: "/repo",
+      getContextUsage: vi.fn(() => undefined),
+      sessionManager: { getBranch: vi.fn(() => []) },
+      ui: { setFooter: vi.fn() },
+    };
+    await pi.handlers.session_start[0]({}, ctx);
+    pi.handlers.session_shutdown[0]({}, ctx);
+    expect(stopPolling).toHaveBeenCalled();
+  });
   it("registers session lifecycle handlers", () => {
     const pi = createMockPi();
-    extension(pi);
+    extension(pi, mockQuotaState);
 
     expect(pi.on).toHaveBeenCalledWith("session_start", expect.any(Function));
     expect(pi.on).toHaveBeenCalledWith(
@@ -30,7 +63,7 @@ describe("pi-statusbar extension", () => {
 
   it("sets a footer when UI is available", async () => {
     const pi = createMockPi();
-    extension(pi);
+    extension(pi, mockQuotaState);
 
     const ctx = {
       hasUI: true,
@@ -48,7 +81,7 @@ describe("pi-statusbar extension", () => {
 
   it("does not render a cleared git state during shutdown", async () => {
     const pi = createMockPi();
-    extension(pi);
+    extension(pi, mockQuotaState);
 
     const ctx = {
       hasUI: true,
@@ -68,7 +101,7 @@ describe("pi-statusbar extension", () => {
 
   it("clears the footer during shutdown", async () => {
     const pi = createMockPi();
-    extension(pi);
+    extension(pi, mockQuotaState);
 
     const ctx = {
       hasUI: true,
@@ -86,7 +119,7 @@ describe("pi-statusbar extension", () => {
 
   it("does not set a footer without UI", async () => {
     const pi = createMockPi();
-    extension(pi);
+    extension(pi, mockQuotaState);
 
     const ctx = { hasUI: false, ui: { setFooter: vi.fn() } };
     await pi.handlers.session_start[0]({}, ctx);

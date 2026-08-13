@@ -42,6 +42,7 @@ const ICON_CONTEXT = "\uf2db"; // nf-fa-microchip
 const ICON_COST = "\uf0d6"; // nf-fa-money
 const ICON_CACHE = "\uf1da"; // nf-fa-history
 const ICON_TOKENS = "\uf0a9"; // nf-fa-arrow-right
+const ICON_SPEND = "\uf200"; // nf-fa-pie-chart
 
 // ---- sections ----
 
@@ -110,6 +111,16 @@ const costSection: StatusbarSection = {
   },
 };
 
+const codexQuotaSection: StatusbarSection = {
+  id: "codex-quota",
+  render(ctx) {
+    const model = ctx.getModel();
+    if (!model || !/^(openai(?:-codex)?|codex)$/i.test(model.provider)) return undefined;
+    const percent = ctx.getCodexQuota?.();
+    return percent === undefined ? undefined : `${ICON_SPEND}  ${percent}%`;
+  },
+};
+
 const tokenFlowSection: StatusbarSection = {
   id: "token-flow",
   render(ctx) {
@@ -129,4 +140,5 @@ export const builtinSections: StatusbarSection[] = [
   contextSection,
   costSection,
   tokenFlowSection,
+  codexQuotaSection,
 ];

@@ -18,6 +18,7 @@ function ctx(cwd: string): SectionAccessors {
       cost: 0,
     }),
     getContextUsage: () => undefined,
+    getCodexQuota: () => undefined,
     getGit: () => ({
       branch: null,
       added: 0,
@@ -29,6 +30,17 @@ function ctx(cwd: string): SectionAccessors {
     }),
   };
 }
+
+describe("codex-quota", () => {
+  const section = builtinSections.find((s) => s.id === "codex-quota")!;
+  it("renders only for OpenAI/Codex with cached percent", () => {
+    const base = ctx("/tmp/project");
+    const quota = { ...base, getModel: () => ({ provider: "openai", id: "gpt" }), getCodexQuota: () => 42 };
+    expect(section.render(quota)).toBe("\uf200  42%");
+    expect(section.render({ ...quota, getModel: () => ({ provider: "openai-codex", id: "gpt-5.6" }) })).toBe("\uf200  42%");
+    expect(section.render({ ...quota, getModel: () => ({ provider: "anthropic", id: "x" }) })).toBeUndefined();
+  });
+});
 
 describe("directory", () => {
   const section = builtinSections.find((s) => s.id === "directory")!;
