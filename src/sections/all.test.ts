@@ -1,3 +1,5 @@
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { builtinSections } from "./all.js";
 import type { SectionAccessors } from "../types.js";
@@ -33,7 +35,7 @@ describe("directory", () => {
 
   it("renders an abbreviated path with the final directory readable", () => {
     expect(
-      section.render(ctx("/Users/bkreeger/src/kreeger/pi-extensions")),
+      section.render(ctx(join(homedir(), "src/kreeger/pi-extensions"))),
     ).toBe("\uf07c  ~/s/k/pi-extensions");
   });
 
