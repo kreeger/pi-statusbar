@@ -115,7 +115,7 @@ const codexQuotaSection: StatusbarSection = {
   id: "codex-quota",
   render(ctx) {
     const model = ctx.getModel();
-    if (!model || !/^(openai|codex)$/i.test(model.provider)) return undefined;
+    if (!model || !/^(openai(?:-codex)?|codex)$/i.test(model.provider)) return undefined;
     const percent = ctx.getCodexQuota?.();
     return percent === undefined ? undefined : `${ICON_SPEND}  ${percent}%`;
   },
