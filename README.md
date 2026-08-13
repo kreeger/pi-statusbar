@@ -44,6 +44,7 @@ flowchart LR
         CTX["context"]
         TOKENS["token-flow"]
         CACHE["cache"]
+    QUOTA["codex-quota"]
     end
 
     API -- session_start --> FOOTER
@@ -79,7 +80,7 @@ the local path:
 pi install /path/to/pi-statusbar
 ```
 
-After installation, restart your pi session. The statusbar appears
+After installation, restart your pi session. Experimental `codex-quota` shows only authenticated Codex used percentage for OpenAI/Codex models, hides unavailable or stale values, and never displays credentials or other quota data. The statusbar appears
 automatically — there's no activation step needed.
 
 ### Verify it is installed
@@ -103,7 +104,7 @@ when this file doesn't exist) is:
   "divider": " | ",
   "sections": [
     "directory", "provider", "model", "thinking",
-    "git", "cost", "context", "token-flow", "cache"
+    "git", "cost", "codex-quota", "context", "token-flow", "cache"
   ]
 }
 ```

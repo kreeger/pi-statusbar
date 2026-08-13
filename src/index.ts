@@ -6,9 +6,11 @@ import { AnsiStyler } from "./themes/ansi-styler.js";
 import { loadTheme } from "./themes/loader.js";
 import { builtinSections } from "./sections/index.js";
 import { GitState, gitSection } from "./git/index.js";
+import { CodexQuotaState } from "./codex-quota.js";
 
 export default function (pi: ExtensionAPI) {
   let gitState: GitState | undefined;
+  let codexQuotaState: CodexQuotaState | undefined;
 
   pi.on("session_start", (_event, ctx) => {
     if (!ctx.hasUI || !ctx.ui) return;
@@ -26,6 +28,10 @@ export default function (pi: ExtensionAPI) {
     gitState = sessionGitState;
     registry.register(gitSection);
     sessionGitState.startPolling();
+    if (config.sections.includes("codex-quota")) {
+      codexQuotaState = new CodexQuotaState();
+      codexQuotaState.startPolling();
+    }
 
     ctx.ui.setFooter(() =>
       createStatusbarFooter({
@@ -43,6 +49,7 @@ export default function (pi: ExtensionAPI) {
         getContextUsage: () => ctx.getContextUsage(),
         getBranchEntries: () => ctx.sessionManager.getBranch(),
         getGitStatus: () => sessionGitState.snapshot,
+        getCodexQuota: () => codexQuotaState?.usedPercent,
         registry,
         styler,
       }),
@@ -56,5 +63,7 @@ export default function (pi: ExtensionAPI) {
       gitState.stopPolling();
       gitState = undefined;
     }
+    codexQuotaState?.stopPolling();
+    codexQuotaState = undefined;
   });
 }

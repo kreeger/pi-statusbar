@@ -5,7 +5,7 @@ import type { StatusbarConfig } from "./types.js";
 
 export const DEFAULT_STATUSBAR_CONFIG: StatusbarConfig = {
   divider: " | ",
-  sections: ["directory", "provider", "model", "thinking", "git", "cost", "context", "token-flow", "cache"],
+  sections: ["directory", "provider", "model", "thinking", "git", "cost", "codex-quota", "context", "token-flow", "cache"],
   footerSpacing: 1,
 };
 
