@@ -36,8 +36,8 @@ describe("codex-quota", () => {
   it("renders only for OpenAI/Codex with cached percent", () => {
     const base = ctx("/tmp/project");
     const quota = { ...base, getModel: () => ({ provider: "openai", id: "gpt" }), getCodexQuota: () => 42 };
-    expect(section.render(quota)).toBe("\uf240  42%");
-    expect(section.render({ ...quota, getModel: () => ({ provider: "openai-codex", id: "gpt-5.6" }) })).toBe("\uf240  42%");
+    expect(section.render(quota)).toBe("\uf200  42%");
+    expect(section.render({ ...quota, getModel: () => ({ provider: "openai-codex", id: "gpt-5.6" }) })).toBe("\uf200  42%");
     expect(section.render({ ...quota, getModel: () => ({ provider: "anthropic", id: "x" }) })).toBeUndefined();
   });
 });
