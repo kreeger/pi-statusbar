@@ -8,7 +8,10 @@ import { builtinSections } from "./sections/index.js";
 import { GitState, gitSection } from "./git/index.js";
 import { CodexQuotaState } from "./codex-quota.js";
 
-export default function (pi: ExtensionAPI) {
+export default function (
+  pi: ExtensionAPI,
+  createCodexQuotaState: () => CodexQuotaState = () => new CodexQuotaState(),
+) {
   let gitState: GitState | undefined;
   let codexQuotaState: CodexQuotaState | undefined;
 
@@ -29,7 +32,7 @@ export default function (pi: ExtensionAPI) {
     registry.register(gitSection);
     sessionGitState.startPolling();
     if (config.sections.includes("codex-quota")) {
-      codexQuotaState = new CodexQuotaState();
+      codexQuotaState = createCodexQuotaState();
       codexQuotaState.startPolling();
     }
 

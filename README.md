@@ -80,7 +80,7 @@ the local path:
 pi install /path/to/pi-statusbar
 ```
 
-After installation, restart your pi session. Experimental `codex-quota` shows only authenticated Codex used percentage for OpenAI/Codex models, hides unavailable or stale values, and never displays credentials or other quota data. The statusbar appears
+After installation, restart your pi session. Experimental `codex-quota` uses a private Codex usage endpoint with read-only local Codex auth from `~/.codex/auth.json`. It shows only authenticated Codex used percentage for OpenAI/Codex models, hides unavailable or stale values, and never displays credentials or other quota data. The statusbar appears
 automatically — there's no activation step needed.
 
 ### Verify it is installed
@@ -103,8 +103,16 @@ when this file doesn't exist) is:
 {
   "divider": " | ",
   "sections": [
-    "directory", "provider", "model", "thinking",
-    "git", "cost", "codex-quota", "context", "token-flow", "cache"
+    "directory",
+    "provider",
+    "model",
+    "thinking",
+    "git",
+    "cost",
+    "codex-quota",
+    "context",
+    "token-flow",
+    "cache"
   ]
 }
 ```
@@ -155,17 +163,17 @@ their Catppuccin defaults.
 
 ## Built-in segments
 
-| ID | Shows |
-|---|---|
-| `directory` | Current working directory, abbreviated (e.g. `~/src/my-project` becomes `~/s/my-project`) |
-| `provider` | Model provider name (e.g. `anthropic`, `openai`) |
-| `model` | Model identifier, provider prefix stripped (e.g. `claude-sonnet-4-20250514`) |
-| `thinking` | Current thinking level setting |
-| `git` | Git branch, ahead/behind counts, and file change counts (`+` added, `~` modified, `-` deleted, `?` untracked) |
-| `cost` | Running session cost |
-| `context` | Context window usage percentage and total window size |
-| `token-flow` | Input and output token counts for the session |
-| `cache` | Cache reads and writes (prompt caching) |
+| ID           | Shows                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| `directory`  | Current working directory, abbreviated (e.g. `~/src/my-project` becomes `~/s/my-project`)                     |
+| `provider`   | Model provider name (e.g. `anthropic`, `openai`)                                                              |
+| `model`      | Model identifier, provider prefix stripped (e.g. `claude-sonnet-4-20250514`)                                  |
+| `thinking`   | Current thinking level setting                                                                                |
+| `git`        | Git branch, ahead/behind counts, and file change counts (`+` added, `~` modified, `-` deleted, `?` untracked) |
+| `cost`       | Running session cost                                                                                          |
+| `context`    | Context window usage percentage and total window size                                                         |
+| `token-flow` | Input and output token counts for the session                                                                 |
+| `cache`      | Cache reads and writes (prompt caching)                                                                       |
 
 ## Writing custom segments
 
@@ -186,7 +194,7 @@ export default function (pi: ExtensionAPI) {
     if (!ctx.hasUI) return;
 
     const registry = (globalThis as any).__piStatusbarRegistry;
-    if (!registry) return;  // pi-statusbar not installed
+    if (!registry) return; // pi-statusbar not installed
 
     registry.register({
       id: "clock",
@@ -218,7 +226,7 @@ After installing this extension, add `"clock"` to the sections array in
    `session_start` handler (which runs after pi-statusbar's).
 3. `register()` accepts any object matching the `StatusbarSection`
    interface: `{ id: string; render(ctx: SectionAccessors): string |
-   undefined }`.
+undefined }`.
 4. If your `id` matches a built-in section, yours replaces it.
 5. Unknown IDs in `statusbar.json` are silently skipped, so you must
    list your custom ID in the sections array for it to appear.

@@ -21,21 +21,34 @@ afterEach(() => {
 
 describe("loadTheme", () => {
   it("returns Catppuccin default when themePath is undefined", () => {
-    expect(loadTheme(undefined).sections.directory).toEqual(CATPPUCCIN_THEME.sections.directory);
+    expect(loadTheme(undefined).sections.directory).toEqual(
+      CATPPUCCIN_THEME.sections.directory,
+    );
   });
 
   it("returns Catppuccin default when themePath is empty", () => {
-    expect(loadTheme("").sections.directory).toEqual(CATPPUCCIN_THEME.sections.directory);
+    expect(loadTheme("").sections.directory).toEqual(
+      CATPPUCCIN_THEME.sections.directory,
+    );
   });
 
   it("returns Catppuccin default when file is missing", () => {
-    expect(loadTheme("/definitely/missing/theme.json").sections.directory)
-      .toEqual(CATPPUCCIN_THEME.sections.directory);
+    expect(
+      loadTheme("/definitely/missing/theme.json").sections.directory,
+    ).toEqual(CATPPUCCIN_THEME.sections.directory);
   });
 
   it("returns Catppuccin default when JSON is invalid", () => {
-    expect(loadTheme(tempFile("not json")).sections.directory)
-      .toEqual(CATPPUCCIN_THEME.sections.directory);
+    expect(loadTheme(tempFile("not json")).sections.directory).toEqual(
+      CATPPUCCIN_THEME.sections.directory,
+    );
+  });
+
+  it("uses exact experimental quota palette", () => {
+    expect(CATPPUCCIN_THEME.sections["codex-quota"]).toEqual({
+      fg: "\x1b[38;2;249;226;175m",
+      bg: "\x1b[48;2;24;24;37m",
+    });
   });
 
   it("merges user overrides on top of Catppuccin", () => {
@@ -53,9 +66,7 @@ describe("loadTheme", () => {
       bg: "\x1b[41m",
     });
     // Non-overridden sections preserved
-    expect(theme.sections.provider).toEqual(
-      CATPPUCCIN_THEME.sections.provider,
-    );
+    expect(theme.sections.provider).toEqual(CATPPUCCIN_THEME.sections.provider);
   });
 
   it("merges defaultSection override", () => {
