@@ -28,10 +28,13 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "vitest run",
-    "deploy": "tsx src/_helpers/install.ts"
+    "deploy": "tsx src/_helpers/install.ts",
+    "release": "release-it"
   },
   "devDependencies": {
+    "@release-it/conventional-changelog": "^12.0.0",
     "@types/node": "^25.6.0",
+    "release-it": "^21.0.2",
     "typescript": "^6.0.3",
     "vitest": "^3.0.0"
   },
