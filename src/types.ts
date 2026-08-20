@@ -63,6 +63,7 @@ export interface SectionAccessors {
   getContextUsage(): StatusbarContextUsage | undefined;
   getGit(): GitStatusSnapshot;
   getCodexQuota?(): number | undefined;
+  getClaudeQuota?(): number | undefined;
 }
 
 export interface StatusbarSection {

@@ -121,6 +121,16 @@ const codexQuotaSection: StatusbarSection = {
   },
 };
 
+const claudeQuotaSection: StatusbarSection = {
+  id: "claude-quota",
+  render(ctx) {
+    const model = ctx.getModel();
+    if (!model || !/^anthropic$/i.test(model.provider)) return undefined;
+    const percent = ctx.getClaudeQuota?.();
+    return percent === undefined ? undefined : `${ICON_SPEND}  ${percent}%`;
+  },
+};
+
 const tokenFlowSection: StatusbarSection = {
   id: "token-flow",
   render(ctx) {
@@ -141,4 +151,5 @@ export const builtinSections: StatusbarSection[] = [
   costSection,
   tokenFlowSection,
   codexQuotaSection,
+  claudeQuotaSection,
 ];

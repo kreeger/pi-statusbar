@@ -19,6 +19,7 @@ function ctx(cwd: string): SectionAccessors {
     }),
     getContextUsage: () => undefined,
     getCodexQuota: () => undefined,
+    getClaudeQuota: () => undefined,
     getGit: () => ({
       branch: null,
       added: 0,
@@ -39,6 +40,16 @@ describe("codex-quota", () => {
     expect(section.render(quota)).toBe("\uf200  42%");
     expect(section.render({ ...quota, getModel: () => ({ provider: "openai-codex", id: "gpt-5.6" }) })).toBe("\uf200  42%");
     expect(section.render({ ...quota, getModel: () => ({ provider: "anthropic", id: "x" }) })).toBeUndefined();
+  });
+});
+
+describe("claude-quota", () => {
+  const section = builtinSections.find((s) => s.id === "claude-quota")!;
+  it("renders only for Anthropic with cached percent", () => {
+    const base = ctx("/tmp/project");
+    const quota = { ...base, getModel: () => ({ provider: "anthropic", id: "claude" }), getClaudeQuota: () => 42 };
+    expect(section.render(quota)).toBe("\uf200  42%");
+    expect(section.render({ ...quota, getModel: () => ({ provider: "openai", id: "gpt" }) })).toBeUndefined();
   });
 });
 

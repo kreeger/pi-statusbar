@@ -45,6 +45,7 @@ export function createSectionAccessors(opts: {
   getContextUsage: () => StatusbarContextUsage | undefined;
   getGitStatus: () => GitStatusSnapshot;
   getCodexQuota?: () => number | undefined;
+  getClaudeQuota?: () => number | undefined;
 }): SectionAccessors {
   let cachedUsage: StatusbarUsage | undefined;
 
@@ -59,6 +60,7 @@ export function createSectionAccessors(opts: {
     getContextUsage: () => opts.getContextUsage(),
     getGit: () => opts.getGitStatus(),
     getCodexQuota: () => opts.getCodexQuota?.(),
+    getClaudeQuota: () => opts.getClaudeQuota?.(),
   };
 }
 
@@ -108,6 +110,7 @@ interface CreateStatusbarFooterOptions {
   getBranchEntries: () => unknown[];
   getGitStatus: () => GitStatusSnapshot;
   getCodexQuota?: () => number | undefined;
+  getClaudeQuota?: () => number | undefined;
   registry: SectionRegistry;
   styler: Styler;
 }

@@ -26,7 +26,7 @@ describe("parseStatusbarConfig", () => {
   it("uses defaults for non-object input", () => {
     expect(parseStatusbarConfig(null)).toEqual({
       divider: " | ",
-      sections: ["directory", "provider", "model", "thinking", "git", "cost", "codex-quota", "context", "token-flow", "cache"],
+      sections: ["directory", "provider", "model", "thinking", "git", "cost", "codex-quota", "claude-quota", "context", "token-flow", "cache"],
       footerSpacing: 1,
     });
   });

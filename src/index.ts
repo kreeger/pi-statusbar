@@ -7,13 +7,16 @@ import { loadTheme } from "./themes/loader.js";
 import { builtinSections } from "./sections/index.js";
 import { GitState, gitSection } from "./git/index.js";
 import { CodexQuotaState } from "./codex-quota.js";
+import { ClaudeQuotaState } from "./claude-quota.js";
 
 export default function (
   pi: ExtensionAPI,
   createCodexQuotaState: () => CodexQuotaState = () => new CodexQuotaState(),
+  createClaudeQuotaState: () => ClaudeQuotaState = () => new ClaudeQuotaState(),
 ) {
   let gitState: GitState | undefined;
   let codexQuotaState: CodexQuotaState | undefined;
+  let claudeQuotaState: ClaudeQuotaState | undefined;
 
   pi.on("session_start", (_event, ctx) => {
     if (!ctx.hasUI || !ctx.ui) return;
@@ -35,6 +38,10 @@ export default function (
       codexQuotaState = createCodexQuotaState();
       codexQuotaState.startPolling();
     }
+    if (config.sections.includes("claude-quota")) {
+      claudeQuotaState = createClaudeQuotaState();
+      claudeQuotaState.startPolling();
+    }
 
     ctx.ui.setFooter(() =>
       createStatusbarFooter({
@@ -53,6 +60,7 @@ export default function (
         getBranchEntries: () => ctx.sessionManager.getBranch(),
         getGitStatus: () => sessionGitState.snapshot,
         getCodexQuota: () => codexQuotaState?.usedPercent,
+        getClaudeQuota: () => claudeQuotaState?.usedPercent,
         registry,
         styler,
       }),
@@ -68,5 +76,7 @@ export default function (
     }
     codexQuotaState?.stopPolling();
     codexQuotaState = undefined;
+    claudeQuotaState?.stopPolling();
+    claudeQuotaState = undefined;
   });
 }

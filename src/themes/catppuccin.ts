@@ -48,6 +48,7 @@ export const CATPPUCCIN_THEME: ThemeConfig = {
     git: { fg: fg(...mocha.peach), bg: bg(...mocha.surface1) },
     cost: { fg: fg(...mocha.mauve), bg: bg(...mocha.base) },
     "codex-quota": { fg: fg(...mocha.yellow), bg: bg(24, 24, 37) },
+    "claude-quota": { fg: fg(...mocha.yellow), bg: bg(24, 24, 37) },
     context: { fg: fg(...mocha.sky), bg: bg(...mocha.surface0) },
     "token-flow": { fg: fg(...mocha.lavender), bg: bg(...mocha.surface1) },
     cache: { fg: fg(...mocha.overlay2), bg: bg(...mocha.surface2) },
