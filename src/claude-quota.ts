@@ -8,13 +8,32 @@ const DEFAULT_POLL_INTERVAL_MS = 300_000;
 const DEFAULT_STALE_TTL_MS = 600_000;
 const REQUEST_TIMEOUT_MS = 10_000;
 
-function extractAccessToken(raw: string): string | undefined {
+function extractClaudeCliToken(raw: string): string | undefined {
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return undefined;
     const token = (parsed as { claudeAiOauth?: { accessToken?: unknown } }).claudeAiOauth
       ?.accessToken;
     return typeof token === "string" && token.length > 0 ? token : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function extractPiAuthToken(raw: string): string | undefined {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return undefined;
+    const token = (parsed as { anthropic?: { access?: unknown } }).anthropic?.access;
+    return typeof token === "string" && token.length > 0 ? token : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function readPiAuthFile(path = join(homedir(), ".pi", "agent", "auth.json")): string | undefined {
+  try {
+    return readFileSync(path, "utf8");
   } catch {
     return undefined;
   }
@@ -44,19 +63,30 @@ export function parseSpendPercent(raw: unknown): number | undefined {
 }
 
 export function readClaudeAccessToken(
+  readPiAuth: () => string | undefined = readPiAuthFile,
   readKeychain: () => string | undefined = readKeychainCredentials,
-  path = join(homedir(), ".claude", ".credentials.json"),
+  credentialsPath = join(homedir(), ".claude", ".credentials.json"),
 ): string | undefined {
+  let piAuthRaw: string | undefined;
+  try {
+    piAuthRaw = readPiAuth();
+  } catch {
+    piAuthRaw = undefined;
+  }
+  const piAuthToken = extractPiAuthToken(piAuthRaw ?? "");
+  if (piAuthToken) return piAuthToken;
+
   let keychainRaw: string | undefined;
   try {
     keychainRaw = readKeychain();
   } catch {
     keychainRaw = undefined;
   }
-  const keychainToken = extractAccessToken(keychainRaw ?? "");
+  const keychainToken = extractClaudeCliToken(keychainRaw ?? "");
   if (keychainToken) return keychainToken;
+
   try {
-    return extractAccessToken(readFileSync(path, "utf8"));
+    return extractClaudeCliToken(readFileSync(credentialsPath, "utf8"));
   } catch {
     return undefined;
   }
@@ -64,10 +94,11 @@ export function readClaudeAccessToken(
 
 export async function fetchClaudeUsedPercent(
   fetchFn: typeof fetch = fetch,
+  readPiAuth?: () => string | undefined,
   readKeychain?: () => string | undefined,
-  authPath?: string,
+  credentialsPath?: string,
 ): Promise<number | undefined> {
-  const token = readClaudeAccessToken(readKeychain, authPath);
+  const token = readClaudeAccessToken(readPiAuth, readKeychain, credentialsPath);
   if (!token) return undefined;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);

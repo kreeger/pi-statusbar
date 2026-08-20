@@ -17,29 +17,56 @@ function credentialsFile(value: unknown): string {
   return path;
 }
 
+const noPiAuth = () => undefined;
+const noKeychain = () => undefined;
+
 describe("claude quota", () => {
-  it("reads access token from a plaintext credentials file and handles read failure", () => {
-    const path = credentialsFile({ claudeAiOauth: { accessToken: "test-token" } });
-    expect(readClaudeAccessToken(() => undefined, path)).toBe("test-token");
-    expect(readClaudeAccessToken(() => undefined, "/missing/.credentials.json")).toBeUndefined();
+  it("prefers pi's own auth.json token over keychain and the credentials file", () => {
+    const path = credentialsFile({ claudeAiOauth: { accessToken: "file-token" } });
+    const readPiAuth = () => JSON.stringify({ anthropic: { access: "pi-token" } });
+    const readKeychain = () =>
+      JSON.stringify({ claudeAiOauth: { accessToken: "keychain-token" } });
+    expect(readClaudeAccessToken(readPiAuth, readKeychain, path)).toBe("pi-token");
   });
 
-  it("prefers a keychain token over the plaintext file when both are present", () => {
+  it("falls back to keychain when pi auth.json is missing or unusable", () => {
     const path = credentialsFile({ claudeAiOauth: { accessToken: "file-token" } });
     const readKeychain = () =>
       JSON.stringify({ claudeAiOauth: { accessToken: "keychain-token" } });
-    expect(readClaudeAccessToken(readKeychain, path)).toBe("keychain-token");
+    expect(readClaudeAccessToken(noPiAuth, readKeychain, path)).toBe("keychain-token");
+    expect(
+      readClaudeAccessToken(
+        () => {
+          throw new Error("no pi auth");
+        },
+        readKeychain,
+        path,
+      ),
+    ).toBe("keychain-token");
+    expect(readClaudeAccessToken(() => "not json", readKeychain, path)).toBe(
+      "keychain-token",
+    );
   });
 
-  it("falls back to the file when the keychain read throws or returns nothing usable", () => {
+  it("falls back to the plaintext credentials file when pi auth.json and keychain are unusable", () => {
     const path = credentialsFile({ claudeAiOauth: { accessToken: "file-token" } });
+    expect(readClaudeAccessToken(noPiAuth, noKeychain, path)).toBe("file-token");
     expect(
-      readClaudeAccessToken(() => {
-        throw new Error("no keychain");
-      }, path),
+      readClaudeAccessToken(
+        noPiAuth,
+        () => {
+          throw new Error("no keychain");
+        },
+        path,
+      ),
     ).toBe("file-token");
-    expect(readClaudeAccessToken(() => "not json", path)).toBe("file-token");
-    expect(readClaudeAccessToken(() => undefined, path)).toBe("file-token");
+    expect(readClaudeAccessToken(noPiAuth, () => "not json", path)).toBe("file-token");
+  });
+
+  it("returns undefined when no source has a usable token", () => {
+    expect(
+      readClaudeAccessToken(noPiAuth, noKeychain, "/missing/.credentials.json"),
+    ).toBeUndefined();
   });
 
   it("parses spend percent only when spend is enabled and percent is a bounded integer", () => {
@@ -56,7 +83,9 @@ describe("claude quota", () => {
       ok: true,
       json: async () => ({ spend: { enabled: true, percent: 42 } }),
     });
-    expect(await fetchClaudeUsedPercent(fetcher, () => undefined, path)).toBe(42);
+    expect(
+      await fetchClaudeUsedPercent(fetcher, noPiAuth, noKeychain, path),
+    ).toBe(42);
     expect(fetcher).toHaveBeenCalledWith(
       CLAUDE_USAGE_ENDPOINT,
       expect.objectContaining({
@@ -66,7 +95,8 @@ describe("claude quota", () => {
     expect(
       await fetchClaudeUsedPercent(
         vi.fn().mockRejectedValue(new Error("failed")),
-        () => undefined,
+        noPiAuth,
+        noKeychain,
         path,
       ),
     ).toBeUndefined();
@@ -85,12 +115,17 @@ describe("claude quota", () => {
           ),
       );
     vi.useFakeTimers();
-    const result = fetchClaudeUsedPercent(fetcher, () => undefined, path);
+    const result = fetchClaudeUsedPercent(fetcher, noPiAuth, noKeychain, path);
     await vi.advanceTimersByTimeAsync(10_001);
     expect(await result).toBeUndefined();
     const missing = vi.fn();
     expect(
-      await fetchClaudeUsedPercent(missing, () => undefined, "/missing/.credentials.json"),
+      await fetchClaudeUsedPercent(
+        missing,
+        noPiAuth,
+        noKeychain,
+        "/missing/.credentials.json",
+      ),
     ).toBeUndefined();
     expect(missing).not.toHaveBeenCalled();
     vi.useRealTimers();

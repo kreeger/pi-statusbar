@@ -49,6 +49,10 @@ describe("loadTheme", () => {
       fg: "\x1b[38;2;249;226;175m",
       bg: "\x1b[48;2;24;24;37m",
     });
+    expect(CATPPUCCIN_THEME.sections["claude-quota"]).toEqual({
+      fg: "\x1b[38;2;249;226;175m",
+      bg: "\x1b[48;2;24;24;37m",
+    });
   });
 
   it("merges user overrides on top of Catppuccin", () => {
