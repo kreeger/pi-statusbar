@@ -79,6 +79,29 @@ describe("pi-statusbar extension", () => {
     expect(ctx.ui.setFooter).toHaveBeenCalledWith(expect.any(Function));
   });
 
+  it("rerenders when Codex quota polling completes", async () => {
+    const pi = createMockPi();
+    const quotaState = mockQuotaState();
+    extension(pi, () => quotaState);
+    const requestRender = vi.fn();
+    const ctx = {
+      hasUI: true,
+      cwd: "/repo",
+      getContextUsage: vi.fn(() => undefined),
+      sessionManager: { getBranch: vi.fn(() => []) },
+      ui: {
+        setFooter: vi.fn((factory) => factory({ requestRender }, {}, {})),
+      },
+    };
+
+    await pi.handlers.session_start[0]({}, ctx);
+
+    const onComplete = quotaState.startPolling.mock.calls[0][0];
+    expect(onComplete).toEqual(expect.any(Function));
+    onComplete();
+    expect(requestRender).toHaveBeenCalledTimes(1);
+  });
+
   it("does not render a cleared git state during shutdown", async () => {
     const pi = createMockPi();
     extension(pi, mockQuotaState);

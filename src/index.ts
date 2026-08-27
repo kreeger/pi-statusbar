@@ -36,15 +36,16 @@ export default function (
     sessionGitState.startPolling();
     if (config.sections.includes("codex-quota")) {
       codexQuotaState = createCodexQuotaState();
-      codexQuotaState.startPolling();
     }
     if (config.sections.includes("claude-quota")) {
       claudeQuotaState = createClaudeQuotaState();
       claudeQuotaState.startPolling();
     }
 
-    ctx.ui.setFooter(() =>
-      createStatusbarFooter({
+    let requestFooterRender = () => {};
+    ctx.ui.setFooter((tui) => {
+      requestFooterRender = () => tui.requestRender();
+      return createStatusbarFooter({
         config,
         cwd: ctx.cwd,
         getModel: () =>
@@ -63,8 +64,9 @@ export default function (
         getClaudeQuota: () => claudeQuotaState?.usedPercent,
         registry,
         styler,
-      }),
-    );
+      });
+    });
+    codexQuotaState?.startPolling(requestFooterRender);
   });
 
   pi.on("session_shutdown", (_event, ctx) => {
