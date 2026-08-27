@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1](https://github.com/kreeger/pi-statusbar/compare/v0.2.0...v0.2.1) (2026-08-27)
+
+### Bug Fixes
+
+* render Codex quota meter ([#4](https://github.com/kreeger/pi-statusbar/issues/4)) ([52cf256](https://github.com/kreeger/pi-statusbar/commit/52cf25682810048a9a3da95343b121f38ed8c7a6))
+
 ## [0.2.0](https://github.com/kreeger/pi-statusbar/compare/v0.1.1...v0.2.0) (2026-08-20)
 
 ### Features
