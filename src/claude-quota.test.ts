@@ -164,7 +164,7 @@ describe("claude quota", () => {
           resolve = r;
         }),
     );
-    const state = new ClaudeQuotaState(fetcher, () => now, 1000, 500);
+    const state = new ClaudeQuotaState(fetcher, () => now, 1000, 500, () => "test-token");
     state.startPolling();
     state.startPolling();
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -176,6 +176,51 @@ describe("claude quota", () => {
     expect(state.usedPercent).toBeUndefined();
     state.stopPolling();
     expect(state.isPolling).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("resolves the token once and reuses it while polls succeed", async () => {
+    vi.useFakeTimers();
+    const readToken = vi.fn(() => "memo-token");
+    const fetcher = vi.fn(
+      async (token: string) => (token === "memo-token" ? 10 : undefined),
+    );
+    const state = new ClaudeQuotaState(fetcher, () => 0, 1000, 500, readToken);
+    state.startPolling();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(readToken).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(readToken).toHaveBeenCalledTimes(1);
+    state.stopPolling();
+    vi.useRealTimers();
+  });
+
+  it("re-resolves the token after a poll yields no value", async () => {
+    vi.useFakeTimers();
+    const readToken = vi.fn(() => "memo-token");
+    let unusable = true;
+    const fetcher = vi.fn(async () => (unusable ? undefined : 20));
+    const state = new ClaudeQuotaState(fetcher, () => 0, 1000, 500, readToken);
+    state.startPolling();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(readToken).toHaveBeenCalledTimes(1);
+    unusable = false;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(readToken).toHaveBeenCalledTimes(2);
+    await vi.waitFor(() => expect(state.usedPercent).toBe(20));
+    state.stopPolling();
+    vi.useRealTimers();
+  });
+
+  it("skips the request entirely when no token can be resolved", async () => {
+    vi.useFakeTimers();
+    const fetcher = vi.fn(async () => 5);
+    const state = new ClaudeQuotaState(fetcher, () => 0, 1000, 500, () => undefined);
+    state.startPolling();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(fetcher).not.toHaveBeenCalled();
+    state.stopPolling();
     vi.useRealTimers();
   });
 });
