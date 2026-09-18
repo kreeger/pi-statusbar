@@ -20,6 +20,10 @@ function extractClaudeCliToken(raw: string): string | undefined {
   }
 }
 
+// Pi stores OAuth credentials as { type: "oauth", access, refresh } and API keys as
+// { type: "api_key", key }. Only the OAuth access token is read here: the usage endpoint
+// is OAuth-only, so an API key would be rejected as a Bearer token. An api_key-shaped
+// entry therefore falls through to the keychain and the credentials file on purpose.
 function extractPiAuthToken(raw: string): string | undefined {
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -98,14 +102,10 @@ export function readClaudeAccessToken(
   }
 }
 
-export async function fetchClaudeUsedPercent(
+async function requestClaudeUsage(
+  token: string,
   fetchFn: typeof fetch = fetch,
-  readPiAuth?: () => string | undefined,
-  readKeychain?: () => string | undefined,
-  credentialsPath?: string,
 ): Promise<number | undefined> {
-  const token = readClaudeAccessToken(readPiAuth, readKeychain, credentialsPath);
-  if (!token) return undefined;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -126,17 +126,32 @@ export async function fetchClaudeUsedPercent(
   }
 }
 
+export async function fetchClaudeUsedPercent(
+  fetchFn: typeof fetch = fetch,
+  readPiAuth?: () => string | undefined,
+  readKeychain?: () => string | undefined,
+  credentialsPath?: string,
+): Promise<number | undefined> {
+  const token = readClaudeAccessToken(readPiAuth, readKeychain, credentialsPath);
+  if (!token) return undefined;
+  return requestClaudeUsage(token, fetchFn);
+}
+
 export class ClaudeQuotaState {
   private value: number | undefined;
+  private token: string | undefined;
   private updatedAt = 0;
   private intervalId: ReturnType<typeof setInterval> | undefined;
   private inFlight = false;
 
   constructor(
-    private readonly fetcher: () => Promise<number | undefined> = () => fetchClaudeUsedPercent(),
+    private readonly fetcher: (token: string) => Promise<number | undefined> = (
+      token,
+    ) => requestClaudeUsage(token),
     private readonly now: () => number = Date.now,
     private readonly pollIntervalMs = DEFAULT_POLL_INTERVAL_MS,
     private readonly staleTtlMs = DEFAULT_STALE_TTL_MS,
+    private readonly readToken: () => string | undefined = () => readClaudeAccessToken(),
   ) {}
 
   get usedPercent(): number | undefined {
@@ -145,10 +160,10 @@ export class ClaudeQuotaState {
       : undefined;
   }
 
-  startPolling(): void {
+  startPolling(onComplete: () => void = () => {}): void {
     if (this.intervalId) return;
-    void this.pollOnce();
-    this.intervalId = setInterval(() => void this.pollOnce(), this.pollIntervalMs);
+    void this.pollOnce(onComplete);
+    this.intervalId = setInterval(() => void this.pollOnce(onComplete), this.pollIntervalMs);
   }
 
   stopPolling(): void {
@@ -158,17 +173,25 @@ export class ClaudeQuotaState {
 
   get isPolling(): boolean { return this.intervalId !== undefined; }
 
-  private async pollOnce(): Promise<void> {
+  private async pollOnce(onComplete: () => void): Promise<void> {
     if (this.inFlight) return;
     this.inFlight = true;
     try {
-      const next = await this.fetcher();
-      if (next !== undefined) {
-        this.value = next;
-        this.updatedAt = this.now();
+      const token = this.token ?? this.readToken();
+      if (!token) return;
+      const next = await this.fetcher(token);
+      if (next === undefined) {
+        // A failed poll may mean the memoized credential has gone stale, so drop it and
+        // re-resolve from auth.json, the keychain, or the credentials file next time.
+        this.token = undefined;
+        return;
       }
+      this.token = token;
+      this.value = next;
+      this.updatedAt = this.now();
     } finally {
       this.inFlight = false;
+      onComplete();
     }
   }
 }

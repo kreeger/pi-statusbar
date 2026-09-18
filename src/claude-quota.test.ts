@@ -72,6 +72,19 @@ describe("claude quota", () => {
     ).toBeUndefined();
   });
 
+  it("ignores an api_key-shaped anthropic entry because the usage endpoint is OAuth-only", () => {
+    const path = credentialsFile({ claudeAiOauth: { accessToken: "file-token" } });
+    const readPiAuth = () =>
+      JSON.stringify({ anthropic: { type: "api_key", key: "sk-ant-not-oauth" } });
+    const readKeychain = () =>
+      JSON.stringify({ claudeAiOauth: { accessToken: "keychain-token" } });
+
+    expect(readClaudeAccessToken(readPiAuth, readKeychain, path)).toBe(
+      "keychain-token",
+    );
+    expect(readClaudeAccessToken(readPiAuth, noKeychain, path)).toBe("file-token");
+  });
+
   it.runIf(process.platform === "darwin")(
     "pipes the keychain lookup's stderr instead of forwarding it to the terminal",
     () => {
@@ -164,7 +177,7 @@ describe("claude quota", () => {
           resolve = r;
         }),
     );
-    const state = new ClaudeQuotaState(fetcher, () => now, 1000, 500);
+    const state = new ClaudeQuotaState(fetcher, () => now, 1000, 500, () => "test-token");
     state.startPolling();
     state.startPolling();
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -176,6 +189,68 @@ describe("claude quota", () => {
     expect(state.usedPercent).toBeUndefined();
     state.stopPolling();
     expect(state.isPolling).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("resolves the token once and reuses it while polls succeed", async () => {
+    vi.useFakeTimers();
+    const readToken = vi.fn(() => "memo-token");
+    const fetcher = vi.fn(
+      async (token: string) => (token === "memo-token" ? 10 : undefined),
+    );
+    const state = new ClaudeQuotaState(fetcher, () => 0, 1000, 500, readToken);
+    state.startPolling();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(readToken).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(readToken).toHaveBeenCalledTimes(1);
+    state.stopPolling();
+    vi.useRealTimers();
+  });
+
+  it("re-resolves the token after a poll yields no value", async () => {
+    vi.useFakeTimers();
+    const readToken = vi.fn(() => "memo-token");
+    let unusable = true;
+    const fetcher = vi.fn(async () => (unusable ? undefined : 20));
+    const state = new ClaudeQuotaState(fetcher, () => 0, 1000, 500, readToken);
+    state.startPolling();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(readToken).toHaveBeenCalledTimes(1);
+    unusable = false;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(readToken).toHaveBeenCalledTimes(2);
+    await vi.waitFor(() => expect(state.usedPercent).toBe(20));
+    state.stopPolling();
+    vi.useRealTimers();
+  });
+
+  it("skips the request entirely when no token can be resolved", async () => {
+    vi.useFakeTimers();
+    const fetcher = vi.fn(async () => 5);
+    const state = new ClaudeQuotaState(fetcher, () => 0, 1000, 500, () => undefined);
+    state.startPolling();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(fetcher).not.toHaveBeenCalled();
+    state.stopPolling();
+    vi.useRealTimers();
+  });
+
+  it("invokes the completion callback after every poll, even without a value", async () => {
+    vi.useFakeTimers();
+    const onComplete = vi.fn();
+    const state = new ClaudeQuotaState(
+      async () => undefined,
+      () => 0,
+      1000,
+      500,
+      () => "test-token",
+    );
+    state.startPolling(onComplete);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(onComplete).toHaveBeenCalledTimes(3);
+    state.stopPolling();
     vi.useRealTimers();
   });
 });
