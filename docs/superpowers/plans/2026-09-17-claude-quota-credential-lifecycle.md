@@ -450,7 +450,7 @@ printf '#!/bin/sh\necho "CALLED: $*" >> /tmp/shim/calls.log\nexit 1\n' > /tmp/sh
 chmod +x /tmp/shim/security
 rm -f /tmp/shim/calls.log
 PATH=/tmp/shim:$PATH npm test >/dev/null 2>&1
-echo "keychain spawns: $(wc -l </tmp/shim/calls.log 2>/dev/null | tr -d ' ' || echo 0)"
+echo "keychain spawns: $(cat /tmp/shim/calls.log 2>/dev/null | wc -l | tr -d ' ')"
 rm -rf /tmp/shim
 ```
 
