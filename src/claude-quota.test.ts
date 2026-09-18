@@ -223,4 +223,21 @@ describe("claude quota", () => {
     state.stopPolling();
     vi.useRealTimers();
   });
+
+  it("invokes the completion callback after every poll, even without a value", async () => {
+    vi.useFakeTimers();
+    const onComplete = vi.fn();
+    const state = new ClaudeQuotaState(
+      async () => undefined,
+      () => 0,
+      1000,
+      500,
+      () => "test-token",
+    );
+    state.startPolling(onComplete);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(onComplete).toHaveBeenCalledTimes(3);
+    state.stopPolling();
+    vi.useRealTimers();
+  });
 });

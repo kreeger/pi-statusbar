@@ -156,10 +156,10 @@ export class ClaudeQuotaState {
       : undefined;
   }
 
-  startPolling(): void {
+  startPolling(onComplete: () => void = () => {}): void {
     if (this.intervalId) return;
-    void this.pollOnce();
-    this.intervalId = setInterval(() => void this.pollOnce(), this.pollIntervalMs);
+    void this.pollOnce(onComplete);
+    this.intervalId = setInterval(() => void this.pollOnce(onComplete), this.pollIntervalMs);
   }
 
   stopPolling(): void {
@@ -169,7 +169,7 @@ export class ClaudeQuotaState {
 
   get isPolling(): boolean { return this.intervalId !== undefined; }
 
-  private async pollOnce(): Promise<void> {
+  private async pollOnce(onComplete: () => void): Promise<void> {
     if (this.inFlight) return;
     this.inFlight = true;
     try {
@@ -187,6 +187,7 @@ export class ClaudeQuotaState {
       this.updatedAt = this.now();
     } finally {
       this.inFlight = false;
+      onComplete();
     }
   }
 }

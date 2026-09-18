@@ -38,6 +38,7 @@ describe("pi-statusbar extension", () => {
           stopPolling,
           isPolling: false,
         }) as any,
+      mockQuotaState,
     );
     const ctx = {
       hasUI: true,
@@ -52,7 +53,7 @@ describe("pi-statusbar extension", () => {
   });
   it("registers session lifecycle handlers", () => {
     const pi = createMockPi();
-    extension(pi, mockQuotaState);
+    extension(pi, mockQuotaState, mockQuotaState);
 
     expect(pi.on).toHaveBeenCalledWith("session_start", expect.any(Function));
     expect(pi.on).toHaveBeenCalledWith(
@@ -63,7 +64,7 @@ describe("pi-statusbar extension", () => {
 
   it("sets a footer when UI is available", async () => {
     const pi = createMockPi();
-    extension(pi, mockQuotaState);
+    extension(pi, mockQuotaState, mockQuotaState);
 
     const ctx = {
       hasUI: true,
@@ -82,7 +83,7 @@ describe("pi-statusbar extension", () => {
   it("rerenders when Codex quota polling completes", async () => {
     const pi = createMockPi();
     const quotaState = mockQuotaState();
-    extension(pi, () => quotaState);
+    extension(pi, () => quotaState, mockQuotaState);
     const requestRender = vi.fn();
     const ctx = {
       hasUI: true,
@@ -102,9 +103,32 @@ describe("pi-statusbar extension", () => {
     expect(requestRender).toHaveBeenCalledTimes(1);
   });
 
+  it("rerenders when Claude quota polling completes", async () => {
+    const pi = createMockPi();
+    const claudeQuotaState = mockQuotaState();
+    extension(pi, mockQuotaState, () => claudeQuotaState);
+    const requestRender = vi.fn();
+    const ctx = {
+      hasUI: true,
+      cwd: "/repo",
+      getContextUsage: vi.fn(() => undefined),
+      sessionManager: { getBranch: vi.fn(() => []) },
+      ui: {
+        setFooter: vi.fn((factory) => factory({ requestRender }, {}, {})),
+      },
+    };
+
+    await pi.handlers.session_start[0]({}, ctx);
+
+    const onComplete = claudeQuotaState.startPolling.mock.calls[0][0];
+    expect(onComplete).toEqual(expect.any(Function));
+    onComplete();
+    expect(requestRender).toHaveBeenCalledTimes(1);
+  });
+
   it("does not render a cleared git state during shutdown", async () => {
     const pi = createMockPi();
-    extension(pi, mockQuotaState);
+    extension(pi, mockQuotaState, mockQuotaState);
 
     const ctx = {
       hasUI: true,
@@ -124,7 +148,7 @@ describe("pi-statusbar extension", () => {
 
   it("clears the footer during shutdown", async () => {
     const pi = createMockPi();
-    extension(pi, mockQuotaState);
+    extension(pi, mockQuotaState, mockQuotaState);
 
     const ctx = {
       hasUI: true,
@@ -142,7 +166,7 @@ describe("pi-statusbar extension", () => {
 
   it("does not set a footer without UI", async () => {
     const pi = createMockPi();
-    extension(pi, mockQuotaState);
+    extension(pi, mockQuotaState, mockQuotaState);
 
     const ctx = { hasUI: false, ui: { setFooter: vi.fn() } };
     await pi.handlers.session_start[0]({}, ctx);

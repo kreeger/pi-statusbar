@@ -39,7 +39,6 @@ export default function (
     }
     if (config.sections.includes("claude-quota")) {
       claudeQuotaState = createClaudeQuotaState();
-      claudeQuotaState.startPolling();
     }
 
     let requestFooterRender = () => {};
@@ -67,6 +66,7 @@ export default function (
       });
     });
     codexQuotaState?.startPolling(requestFooterRender);
+    claudeQuotaState?.startPolling(requestFooterRender);
   });
 
   pi.on("session_shutdown", (_event, ctx) => {
