@@ -45,7 +45,13 @@ function readKeychainCredentials(): string | undefined {
     return execFileSync(
       "security",
       ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
-      { encoding: "utf8", timeout: REQUEST_TIMEOUT_MS },
+      {
+        encoding: "utf8",
+        timeout: REQUEST_TIMEOUT_MS,
+        // execFileSync forwards the child's stderr to the parent's unless stdio is
+        // explicit, which would print a failed lookup's diagnostic into the pi TUI.
+        stdio: ["ignore", "pipe", "pipe"],
+      },
     );
   } catch {
     return undefined;

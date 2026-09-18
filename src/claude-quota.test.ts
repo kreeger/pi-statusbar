@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,6 +10,8 @@ import {
   parseSpendPercent,
   readClaudeAccessToken,
 } from "./claude-quota.js";
+
+vi.mock("node:child_process", () => ({ execFileSync: vi.fn() }));
 
 function credentialsFile(value: unknown): string {
   const dir = mkdtempSync(join(tmpdir(), "pi-statusbar-claude-"));
@@ -68,6 +71,26 @@ describe("claude quota", () => {
       readClaudeAccessToken(noPiAuth, noKeychain, "/missing/.credentials.json"),
     ).toBeUndefined();
   });
+
+  it.runIf(process.platform === "darwin")(
+    "pipes the keychain lookup's stderr instead of forwarding it to the terminal",
+    () => {
+      const mockedExecFileSync = vi.mocked(execFileSync);
+      mockedExecFileSync.mockReset();
+      mockedExecFileSync.mockImplementation(() => {
+        throw new Error("item not found");
+      });
+
+      expect(
+        readClaudeAccessToken(noPiAuth, undefined, "/missing/.credentials.json"),
+      ).toBeUndefined();
+
+      expect(mockedExecFileSync).toHaveBeenCalledTimes(1);
+      expect(mockedExecFileSync.mock.calls[0]?.[2]).toMatchObject({
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    },
+  );
 
   it("parses spend percent only when spend is enabled and percent is a bounded integer", () => {
     expect(parseSpendPercent({ spend: { enabled: true, percent: 7 } })).toBe(7);
