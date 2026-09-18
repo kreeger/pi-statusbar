@@ -72,6 +72,19 @@ describe("claude quota", () => {
     ).toBeUndefined();
   });
 
+  it("ignores an api_key-shaped anthropic entry because the usage endpoint is OAuth-only", () => {
+    const path = credentialsFile({ claudeAiOauth: { accessToken: "file-token" } });
+    const readPiAuth = () =>
+      JSON.stringify({ anthropic: { type: "api_key", key: "sk-ant-not-oauth" } });
+    const readKeychain = () =>
+      JSON.stringify({ claudeAiOauth: { accessToken: "keychain-token" } });
+
+    expect(readClaudeAccessToken(readPiAuth, readKeychain, path)).toBe(
+      "keychain-token",
+    );
+    expect(readClaudeAccessToken(readPiAuth, noKeychain, path)).toBe("file-token");
+  });
+
   it.runIf(process.platform === "darwin")(
     "pipes the keychain lookup's stderr instead of forwarding it to the terminal",
     () => {

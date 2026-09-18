@@ -20,6 +20,10 @@ function extractClaudeCliToken(raw: string): string | undefined {
   }
 }
 
+// Pi stores OAuth credentials as { type: "oauth", access, refresh } and API keys as
+// { type: "api_key", key }. Only the OAuth access token is read here: the usage endpoint
+// is OAuth-only, so an API key would be rejected as a Bearer token. An api_key-shaped
+// entry therefore falls through to the keychain and the credentials file on purpose.
 function extractPiAuthToken(raw: string): string | undefined {
   try {
     const parsed: unknown = JSON.parse(raw);
