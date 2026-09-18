@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/kreeger/pi-statusbar/compare/v0.2.1...v0.2.2) (2026-09-18)
+
+### Bug Fixes
+
+* stop leaking keychain lookup stderr into the terminal ([#5](https://github.com/kreeger/pi-statusbar/issues/5)) ([6252037](https://github.com/kreeger/pi-statusbar/commit/62520378b1ceed279e048bc7e5c7876c773ac260))
+* stop re-reading the keychain on every Claude quota poll ([#6](https://github.com/kreeger/pi-statusbar/issues/6)) ([d6a90ee](https://github.com/kreeger/pi-statusbar/commit/d6a90ee412fed106d67c0c5ee9eae6c0e48bc69f))
+
 ## [0.2.1](https://github.com/kreeger/pi-statusbar/compare/v0.2.0...v0.2.1) (2026-08-27)
 
 ### Bug Fixes
