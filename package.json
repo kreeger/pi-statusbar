@@ -1,6 +1,6 @@
 {
   "name": "@kreeger/pi-statusbar",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A configurable statusbar footer for the pi-coding-agent TUI.",
   "keywords": [
     "pi-package",
