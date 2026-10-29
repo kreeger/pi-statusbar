@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.3](https://github.com/kreeger/pi-statusbar/compare/v0.2.2...v0.2.3) (2026-10-29)
+
+### Bug Fixes
+
+* count Anthropic cache writes toward tokens sent ([e3b4117](https://github.com/kreeger/pi-statusbar/commit/e3b4117814687def960523ae0ce565c3f170bd69))
+
 ## [0.2.2](https://github.com/kreeger/pi-statusbar/compare/v0.2.1...v0.2.2) (2026-09-18)
 
 ### Bug Fixes
