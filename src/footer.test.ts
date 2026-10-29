@@ -228,4 +228,27 @@ describe("collectUsage", () => {
       totalTokens: 16, cost: 0.01,
     });
   });
+
+  it("counts Anthropic cache writes as sent, but other providers and cache reads are unchanged", () => {
+    const entries = [
+      {
+        type: "message",
+        message: {
+          role: "assistant",
+          provider: "anthropic",
+          usage: { input: 10, output: 3, cacheRead: 5000, cacheWrite: 200, totalTokens: 0, cost: { total: 0 } },
+        },
+      },
+      {
+        type: "message",
+        message: {
+          role: "assistant",
+          provider: "openai",
+          usage: { input: 7, output: 1, cacheRead: 300, cacheWrite: 50, totalTokens: 0, cost: { total: 0 } },
+        },
+      },
+    ];
+
+    expect(collectUsage(entries).input).toBe(217);
+  });
 });

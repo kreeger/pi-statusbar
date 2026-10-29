@@ -26,7 +26,9 @@ export function collectUsage(entries: unknown[]): StatusbarUsage {
     if ((entry as { type?: unknown }).type !== "message") continue;
     if (message?.role !== "assistant" || !message.usage) continue;
 
-    usage.input += message.usage.input ?? 0;
+    // Anthropic's input excludes cache writes, so count them as sent for that provider.
+    const anthropicCacheWrite = message.provider === "anthropic" ? message.usage.cacheWrite ?? 0 : 0;
+    usage.input += (message.usage.input ?? 0) + anthropicCacheWrite;
     usage.output += message.usage.output ?? 0;
     usage.cacheRead += message.usage.cacheRead ?? 0;
     usage.cacheWrite += message.usage.cacheWrite ?? 0;
