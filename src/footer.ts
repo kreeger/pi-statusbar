@@ -7,6 +7,7 @@ import type {
   SectionAccessors,
   StatusbarConfig,
   StatusbarContextUsage,
+  StatusbarLastTurn,
   StatusbarModel,
   StatusbarUsage,
 } from "./types.js";
@@ -39,6 +40,17 @@ export function collectUsage(entries: unknown[]): StatusbarUsage {
   return usage;
 }
 
+/** Provider and input tokens of the most recent assistant message, if any. */
+export function lastAssistantTurn(entries: unknown[]): StatusbarLastTurn | undefined {
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const entry = entries[i] as { type?: unknown; message?: any };
+    if (entry.type !== "message") continue;
+    if (entry.message?.role !== "assistant" || !entry.message.usage) continue;
+    return { provider: entry.message.provider, input: entry.message.usage.input ?? 0 };
+  }
+  return undefined;
+}
+
 export function createSectionAccessors(opts: {
   cwd: string;
   getModel: () => StatusbarModel | undefined;
@@ -48,6 +60,7 @@ export function createSectionAccessors(opts: {
   getGitStatus: () => GitStatusSnapshot;
   getCodexQuota?: () => number | undefined;
   getClaudeQuota?: () => number | undefined;
+  perTurnSentProviders?: readonly string[];
 }): SectionAccessors {
   let cachedUsage: StatusbarUsage | undefined;
 
@@ -59,6 +72,8 @@ export function createSectionAccessors(opts: {
       if (!cachedUsage) cachedUsage = collectUsage(opts.getBranchEntries());
       return cachedUsage;
     },
+    getLastTurn: () => lastAssistantTurn(opts.getBranchEntries()),
+    getPerTurnSentProviders: () => opts.perTurnSentProviders ?? [],
     getContextUsage: () => opts.getContextUsage(),
     getGit: () => opts.getGitStatus(),
     getCodexQuota: () => opts.getCodexQuota?.(),
@@ -125,7 +140,10 @@ export function createStatusbarFooter(
   return {
     invalidate() {},
     render(width: number): string[] {
-      const accessors = createSectionAccessors(options);
+      const accessors = createSectionAccessors({
+        ...options,
+        perTurnSentProviders: config.perTurnSentProviders,
+      });
       const line = renderStatusbarLine({
         config,
         ctx: accessors,

@@ -20,7 +20,7 @@ export function getDefaultConfigPath(): string {
 export function parseStatusbarConfig(raw: unknown): StatusbarConfig {
   if (!raw || typeof raw !== "object") return { ...DEFAULT_STATUSBAR_CONFIG };
 
-  const input = raw as { divider?: unknown; sections?: unknown; themePath?: unknown; footerSpacing?: unknown };
+  const input = raw as { divider?: unknown; sections?: unknown; themePath?: unknown; footerSpacing?: unknown; perTurnSentProviders?: unknown };
   const divider =
     typeof input.divider === "string"
       ? input.divider
@@ -39,7 +39,11 @@ export function parseStatusbarConfig(raw: unknown): StatusbarConfig {
       ? clampToRange(rawSpacing, 0, 3)
       : 1;
 
-  return { divider, sections, themePath, footerSpacing };
+  const perTurnSentProviders = Array.isArray(input.perTurnSentProviders)
+    ? input.perTurnSentProviders.filter((provider): provider is string => typeof provider === "string")
+    : undefined;
+
+  return { divider, sections, themePath, footerSpacing, perTurnSentProviders };
 }
 
 export function loadStatusbarConfig(

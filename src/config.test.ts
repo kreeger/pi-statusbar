@@ -65,6 +65,19 @@ describe("parseStatusbarConfig", () => {
     expect(result.themePath).toBeUndefined();
   });
 
+  it("keeps perTurnSentProviders as a list of strings", () => {
+    expect(
+      parseStatusbarConfig({ divider: " | ", sections: [], perTurnSentProviders: ["orm", 3] }),
+    ).toMatchObject({ perTurnSentProviders: ["orm"] });
+  });
+
+  it("leaves perTurnSentProviders unset when missing or not an array", () => {
+    expect(parseStatusbarConfig({ divider: " | ", sections: [] }).perTurnSentProviders).toBeUndefined();
+    expect(
+      parseStatusbarConfig({ divider: " | ", sections: [], perTurnSentProviders: "orm" }).perTurnSentProviders,
+    ).toBeUndefined();
+  });
+
   it("parses footerSpacing as-is within range", () => {
     expect(
       parseStatusbarConfig({ divider: " | ", sections: [], footerSpacing: 2 }),

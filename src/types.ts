@@ -5,6 +5,8 @@ export interface StatusbarConfig {
   themePath?: string;
   /** Number of blank lines below the statusbar (0-3). Default: 0. */
   footerSpacing?: number;
+  /** Providers whose ↑ shows the latest turn's input instead of the session total. */
+  perTurnSentProviders?: string[];
 }
 
 export interface StatusbarUsage {
@@ -14,6 +16,11 @@ export interface StatusbarUsage {
   cacheWrite: number;
   totalTokens: number;
   cost: number;
+}
+
+export interface StatusbarLastTurn {
+  provider: string;
+  input: number;
 }
 
 export interface StatusbarContextUsage {
@@ -60,6 +67,8 @@ export interface SectionAccessors {
   getModel(): StatusbarModel | undefined;
   getThinkingLevel(): string;
   getUsage(): StatusbarUsage;
+  getLastTurn?(): StatusbarLastTurn | undefined;
+  getPerTurnSentProviders?(): readonly string[];
   getContextUsage(): StatusbarContextUsage | undefined;
   getGit(): GitStatusSnapshot;
   getCodexQuota?(): number | undefined;

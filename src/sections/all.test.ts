@@ -53,6 +53,29 @@ describe("claude-quota", () => {
   });
 });
 
+describe("token-flow", () => {
+  const section = builtinSections.find((s) => s.id === "token-flow")!;
+  const usage = { input: 617900, output: 3300, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: 0 };
+
+  it("shows the last turn's sent tokens for configured providers, with output still cumulative", () => {
+    const base = { ...ctx("/tmp/project"), getUsage: () => usage, getPerTurnSentProviders: () => ["orm"] };
+    const orm = { ...base, getLastTurn: () => ({ provider: "orm", input: 45473 }) };
+    expect(section.render(orm)).toBe("\uf0a9  \u219145.5k \u21933.3k");
+  });
+
+  it("keeps cumulative sent for providers not in the list", () => {
+    const base = { ...ctx("/tmp/project"), getUsage: () => usage, getPerTurnSentProviders: () => ["orm"] };
+    const codex = { ...base, getLastTurn: () => ({ provider: "openai-codex", input: 45473 }) };
+    expect(section.render(codex)).toBe("\uf0a9  \u2191617.9k \u21933.3k");
+    expect(section.render(base)).toBe("\uf0a9  \u2191617.9k \u21933.3k");
+  });
+
+  it("stays cumulative when no providers are configured", () => {
+    const base = { ...ctx("/tmp/project"), getUsage: () => usage, getLastTurn: () => ({ provider: "orm", input: 45473 }) };
+    expect(section.render(base)).toBe("\uf0a9  \u2191617.9k \u21933.3k");
+  });
+});
+
 describe("directory", () => {
   const section = builtinSections.find((s) => s.id === "directory")!;
 

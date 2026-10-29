@@ -135,7 +135,10 @@ const tokenFlowSection: StatusbarSection = {
   id: "token-flow",
   render(ctx) {
     const usage = ctx.getUsage();
-    const input = `\u2191${formatCount(usage.input)}`;
+    const lastTurn = ctx.getLastTurn?.();
+    const perTurn = ctx.getPerTurnSentProviders?.() ?? [];
+    const sent = lastTurn && perTurn.includes(lastTurn.provider) ? lastTurn.input : usage.input;
+    const input = `\u2191${formatCount(sent)}`;
     const output = `\u2193${formatCount(usage.output)}`;
     return `${ICON_TOKENS}  ${input} ${output}`;
   },

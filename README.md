@@ -125,6 +125,23 @@ aren't available (not typically visible in the TUI). The `sections` array lists
 the built-in segment IDs in display order. Remove any you don't want, or reorder
 them.
 
+### Per-turn sent tokens
+
+By default, `token-flow` shows the session's total input tokens as `↑`. Some
+providers don't report prompt-cache reads, so each turn re-sends the whole
+context and the total grows quickly. List those providers in
+`perTurnSentProviders` to have `↑` show only the latest turn's input instead.
+Output (`↓`) stays cumulative.
+
+```json
+{
+  "perTurnSentProviders": ["orm"]
+}
+```
+
+The rule applies when the most recent assistant turn came from a listed
+provider. Otherwise `↑` falls back to the session total.
+
 ### Custom themes
 
 Add a `themePath` field pointing to a JSON file with ANSI escape sequences for

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectUsage, createStatusbarFooter, renderStatusbarLine } from "./footer.js";
+import { collectUsage, createSectionAccessors, createStatusbarFooter, lastAssistantTurn, renderStatusbarLine } from "./footer.js";
 import { SectionRegistry } from "./registry.js";
 import type { Styler } from "./styler.js";
 import type { SectionAccessors } from "./types.js";
@@ -205,6 +205,38 @@ describe("createStatusbarFooter", () => {
     expect(lines).toHaveLength(3);
     expect(lines[1]).toBe(" ");
     expect(lines[2]).toBe(" ");
+  });
+});
+
+describe("createSectionAccessors", () => {
+  it("exposes the configured per-turn providers", () => {
+    const accessors = createSectionAccessors({
+      cwd: "/repo",
+      getModel: () => undefined,
+      getThinkingLevel: () => "off",
+      getBranchEntries: () => [],
+      getContextUsage: () => undefined,
+      getGitStatus: () => ({ branch: null, added: 0, modified: 0, deleted: 0, untracked: 0, ahead: 0, behind: 0 }),
+      perTurnSentProviders: ["orm"],
+    });
+    expect(accessors.getPerTurnSentProviders?.()).toEqual(["orm"]);
+  });
+});
+
+describe("lastAssistantTurn", () => {
+  it("returns the provider and input of the most recent assistant message", () => {
+    const entries = [
+      { type: "message", message: { role: "assistant", provider: "orm", usage: { input: 100 } } },
+      { type: "message", message: { role: "user", provider: "orm" } },
+      { type: "message", message: { role: "assistant", provider: "orm", usage: { input: 250 } } },
+      { type: "other" },
+    ];
+
+    expect(lastAssistantTurn(entries)).toEqual({ provider: "orm", input: 250 });
+  });
+
+  it("returns undefined when there is no assistant message", () => {
+    expect(lastAssistantTurn([])).toBeUndefined();
   });
 });
 
